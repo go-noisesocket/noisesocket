@@ -56,7 +56,7 @@ func startNoiseSocketServer() {
 		Private: priv,
 	}
 
-	l, err := noisesocket.Listen(":12888", serverKeys)
+	l, err := noisesocket.Listen(":12888", &noisesocket.ConnectionConfig{StaticKey: serverKeys})
 	if err != nil {
 		fmt.Println("Error listening:", err)
 		os.Exit(1)

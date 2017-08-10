@@ -125,7 +125,7 @@ func noiseRoundTrip(noiseAddress string, clientKeys noise.DHKey, body []byte) ([
 	transport := &http.Transport{
 		DialTLS: func(network, addr string) (net.Conn, error) {
 			//fmt.Println("dial!")
-			return noisesocket.Dial(addr, clientKeys, nil)
+			return noisesocket.Dial(addr, &noisesocket.ConnectionConfig{StaticKey: clientKeys})
 		},
 	}
 

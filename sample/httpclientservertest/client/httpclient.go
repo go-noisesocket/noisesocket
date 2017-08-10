@@ -46,7 +46,7 @@ func main() {
 		//DisableKeepAlives:   false,
 
 		DialTLS: func(network, addr string) (net.Conn, error) {
-			conn, err := noisesocket.Dial(addr, clientKeys, nil)
+			conn, err := noisesocket.Dial(addr, &noisesocket.ConnectionConfig{StaticKey: clientKeys})
 			fmt.Println("Dial")
 			if err != nil {
 				fmt.Println("Dial", err)

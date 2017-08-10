@@ -22,7 +22,9 @@ func main() {
 		Private: priv1,
 	}
 
-	conn, err := noisesocket.Dial("127.0.0.1:10000", clientKeys, nil)
+	conn, err := noisesocket.Dial("127.0.0.1:10000", &noisesocket.ConnectionConfig{
+		StaticKey: clientKeys,
+	})
 	if err != nil {
 		panic(err)
 	}

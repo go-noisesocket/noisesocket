@@ -26,6 +26,7 @@ func init() {
 	//negotiationData[5] //pattern. determined at runtime
 }
 
+// ComposeInitiatorHandshakeMessage generates handshakeState and the first noise message.
 func ComposeInitiatorHandshakeMessage(s noise.DHKey, rs []byte, payload []byte, ePrivate []byte) (negData, msg []byte, state *noise.HandshakeState, err error) {
 
 	if len(rs) != 0 && len(rs) != noise.DH25519.DHLen() {
@@ -36,14 +37,13 @@ func ComposeInitiatorHandshakeMessage(s noise.DHKey, rs []byte, payload []byte, 
 
 	negData = make([]byte, 6)
 	copy(negData, negotiationData)
+
 	if len(rs) == 0 {
 		pattern = noise.HandshakeXX
 		negData[5] = NOISE_PATTERN_XX
-		msg = make([]byte, 0, 32) //neg.data + length + public key
 	} else {
 		pattern = noise.HandshakeIK
 		negData[5] = NOISE_PATTERN_IK
-		msg = make([]byte, 0, 80) //neg.data + length + public key + encrypted public key
 	}
 
 	var random io.Reader
@@ -77,7 +77,6 @@ func ParseNegotiationData(data []byte, s noise.DHKey) (state *noise.HandshakeSta
 	if len(data) != 6 {
 		return nil, errors.New("Invalid negotiation data length")
 	}
-	//fmt.Println(hex.EncodeToString(data))
 
 	version := binary.BigEndian.Uint16(data)
 	if version != 1 {

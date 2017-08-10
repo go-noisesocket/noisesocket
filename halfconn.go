@@ -26,8 +26,6 @@ const (
 	macSize    = 16 // GCM and Poly1305 add 16 byte MACs
 )
 
-// encryptIfNeeded prepares packet structure depending on padding and data length.
-// It also encrypts it if cipher is set up (handshake is done)
 func (h *halfConn) encryptIfNeeded(block *buffer) []byte {
 
 	if h.cs != nil {
@@ -67,7 +65,6 @@ func (h *halfConn) decryptIfNeeded(b *buffer) (off, length int, err error) {
 	}
 
 	if h.cs != nil {
-		////fmt.Println("decrypting packet:", hex.EncodeToString(b.data))
 		payload, err = h.cs.Decrypt(payload[:0], nil, payload)
 		if err != nil {
 			return 0, 0, err

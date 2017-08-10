@@ -29,7 +29,7 @@ func main() {
 
 	serverKeys := noise.DH25519.GenerateKeypair(c.Reader)
 
-	listener, err := noisesocket.Listen(localAddr, serverKeys)
+	listener, err := noisesocket.Listen(localAddr, &noisesocket.ConnectionConfig{StaticKey: serverKeys})
 	if listener == nil {
 		log.Fatalf("cannot listen: %v", err)
 	}

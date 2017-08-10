@@ -24,7 +24,7 @@ func main() {
 
 	keys := noise.DH25519.GenerateKeypair(rand.Reader)
 
-	l, err := noisesocket.Listen(os.Args[1], keys)
+	l, err := noisesocket.Listen(os.Args[1], &noisesocket.ConnectionConfig{StaticKey: keys})
 	if err != nil {
 		log.Fatal(err)
 	}

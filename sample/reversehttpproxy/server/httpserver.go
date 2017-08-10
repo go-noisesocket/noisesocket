@@ -62,7 +62,7 @@ func startNoiseSocketServer(port, strategy int) {
 
 	serverKeys := noise.DH25519.GenerateKeypair(rand.Reader)
 
-	l, err := noisesocket.Listen(fmt.Sprintf(":%d", port), serverKeys)
+	l, err := noisesocket.Listen(fmt.Sprintf(":%d", port), &noisesocket.ConnectionConfig{StaticKey: serverKeys})
 	if err != nil {
 		fmt.Println("Error listening:", err)
 		os.Exit(1)

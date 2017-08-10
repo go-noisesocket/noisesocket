@@ -17,6 +17,8 @@ import (
 
 	"bytes"
 
+	"fmt"
+
 	"github.com/flynn/noise"
 	"github.com/pkg/errors"
 )
@@ -24,6 +26,15 @@ import (
 const MaxPayloadSize = math.MaxUint16 - 16 /*mac size*/ - uint16Size /*data len*/
 
 type VerifyCallbackFunc func(publicKey []byte, data []byte) error
+
+type ConnectionConfig struct {
+	isClient       bool
+	VerifyCallback VerifyCallbackFunc
+	Payload        []byte //certificates, signs etc
+	StaticKey      noise.DHKey
+	PeerStatic     []byte
+	Padding        uint16
+}
 
 type ConnectionInfo struct {
 	Name          string
@@ -33,19 +44,20 @@ type ConnectionInfo struct {
 	HandshakeHash []byte
 }
 
+// locking logic has been copied from the original TLS.conn
+
 type Conn struct {
-	conn              net.Conn
-	myKeys            noise.DHKey
-	PeerKey           []byte
+	conn net.Conn
+
 	in, out           halfConn
 	handshakeMutex    sync.Mutex
 	handshakeComplete bool
-	isClient          bool
-	handshakeErr      error
-	input             *buffer
-	rawInput          *buffer
-	hand              bytes.Buffer // handshake data waiting to be read
-	padding           uint16
+
+	handshakeErr error
+	input        *buffer
+	rawInput     *buffer
+	hand         bytes.Buffer // handshake data waiting to be read
+
 	// activeCall is an atomic int32; the low bit is whether Close has
 	// been called. the rest of the bits are the number of goroutines
 	// in Conn.Write.
@@ -56,6 +68,8 @@ type Conn struct {
 	handshakeCond  *sync.Cond
 	channelBinding []byte
 	connectionInfo []byte
+	HandshakeData  []byte
+	config         ConnectionConfig
 }
 
 // Access to net.Conn methods.
@@ -97,7 +111,7 @@ func (c *Conn) ConnectionState() tls.ConnectionState {
 	data := &struct {
 		PeerPublic    []byte
 		HandshakeHash []byte
-	}{PeerPublic: c.PeerKey,
+	}{PeerPublic: c.config.PeerStatic,
 		HandshakeHash: c.channelBinding}
 
 	bytes, _ := json.Marshal(data)
@@ -419,7 +433,7 @@ func (c *Conn) Handshake() error {
 
 	c.handshakeMutex.Lock()
 
-	if c.isClient {
+	if c.config.isClient {
 		c.handshakeErr = c.RunClientHandshake()
 	} else {
 		c.handshakeErr = c.RunServerHandshake()
@@ -447,7 +461,7 @@ func (c *Conn) RunClientHandshake() error {
 		csIn, csOut  *noise.CipherState
 	)
 
-	if negData, msg, state, err = ComposeInitiatorHandshakeMessage(c.myKeys, nil, nil, nil); err != nil {
+	if negData, msg, state, err = ComposeInitiatorHandshakeMessage(c.config.StaticKey, nil, nil, nil); err != nil {
 		return err
 	}
 	if _, err = c.writePacket(negData); err != nil {
@@ -478,17 +492,19 @@ func (c *Conn) RunClientHandshake() error {
 	// cannot reuse msg for read, need another buf
 	inBlock := c.in.newBlock()
 	inBlock.reserve(len(msg))
-	_, csIn, csOut, err = state.ReadMessage(inBlock.data, msg)
+	payload, csIn, csOut, err := state.ReadMessage(inBlock.data, msg)
 	if err != nil {
 		c.in.freeBlock(inBlock)
 		return err
 	}
+
+	c.config.VerifyCallback(state.PeerStatic(), payload)
 	c.in.freeBlock(inBlock)
 
 	if csIn == nil && csOut == nil {
 		b := c.out.newBlock()
 
-		b.data, csIn, csOut = state.WriteMessage(b.data, nil)
+		b.data, csIn, csOut = state.WriteMessage(b.data, c.config.Payload)
 
 		if _, err = c.writePacket(nil); err != nil {
 			c.out.freeBlock(b)
@@ -509,7 +525,7 @@ func (c *Conn) RunClientHandshake() error {
 
 	c.in.cs = csOut
 	c.out.cs = csIn
-	c.in.padding, c.out.padding = c.padding, c.padding
+	c.in.padding, c.out.padding = c.config.Padding, c.config.Padding
 	c.channelBinding = state.ChannelBinding()
 	c.handshakeComplete = true
 	return nil
@@ -521,7 +537,7 @@ func (c *Conn) RunServerHandshake() error {
 		return err
 	}
 
-	hs, err := ParseNegotiationData(c.hand.Next(c.hand.Len()), c.myKeys)
+	hs, err := ParseNegotiationData(c.hand.Next(c.hand.Len()), c.config.StaticKey)
 
 	if err != nil {
 		return err
@@ -530,15 +546,20 @@ func (c *Conn) RunServerHandshake() error {
 	if err := c.readPacket(); err != nil {
 		return err
 	}
-	_, _, _, err = hs.ReadMessage(nil, c.hand.Next(c.hand.Len()))
+	payload, _, _, err := hs.ReadMessage(nil, c.hand.Next(c.hand.Len()))
 
+	if err != nil {
+		return err
+	}
+
+	err = c.processCallback(hs.PeerStatic(), payload)
 	if err != nil {
 		return err
 	}
 
 	b := c.out.newBlock()
 
-	b.data, csOut, csIn = hs.WriteMessage(b.data, nil)
+	b.data, csOut, csIn = hs.WriteMessage(b.data, c.config.Payload)
 	//empty negotiation data
 	_, err = c.writePacket(nil)
 	if err != nil {
@@ -558,8 +579,7 @@ func (c *Conn) RunServerHandshake() error {
 		}
 		negotiationData = c.hand.Next(c.hand.Len())
 		if len(negotiationData) != 0 {
-			////fmt.Println("negotiation data must be 0, atata: ", len(negotiationData))
-			//return errors.New("Not supported")
+			return errors.New("Not supported")
 		}
 
 		//read noise message
@@ -570,10 +590,15 @@ func (c *Conn) RunServerHandshake() error {
 		inBlock := c.in.newBlock()
 		data := c.hand.Next(c.hand.Len())
 		inBlock.reserve(len(data))
-		_, csOut, csIn, err = hs.ReadMessage(inBlock.data[:0], data)
+		payload, csOut, csIn, err = hs.ReadMessage(inBlock.data[:0], data)
 
 		c.in.freeBlock(inBlock)
 
+		if err != nil {
+			return err
+		}
+
+		err = c.processCallback(hs.PeerStatic(), payload)
 		if err != nil {
 			return err
 		}
@@ -584,9 +609,9 @@ func (c *Conn) RunServerHandshake() error {
 	}
 	c.in.cs = csOut
 	c.out.cs = csIn
-	c.in.padding, c.out.padding = c.padding, c.padding
+	c.in.padding, c.out.padding = c.config.Padding, c.config.Padding
 	c.channelBinding = hs.ChannelBinding()
-	c.PeerKey = hs.PeerStatic()
+	c.config.PeerStatic = hs.PeerStatic()
 
 	/*info := &ConnectionInfo{
 		Name: "Noise",
@@ -603,4 +628,16 @@ func (c *Conn) RunServerHandshake() error {
 
 	c.handshakeComplete = true
 	return nil
+}
+
+func (c *Conn) processCallback(publicKey []byte, payload []byte) error {
+	if c.config.VerifyCallback == nil {
+		return nil
+	}
+
+	err := c.config.VerifyCallback(publicKey, payload)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return err
 }
