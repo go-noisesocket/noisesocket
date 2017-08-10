@@ -12,7 +12,7 @@ Server:
 
 it will ask you to enter confirmation code on the first start
 
-1. Setup
+## 1. Setup
 ---------
 
 First, a Global Virgil Card must be created for both server and client. It is done by using Virgil API and requires your email
@@ -29,7 +29,7 @@ Then it will ask for the confirmation code you received and will register your c
 
 **Your private key will be used to sign NoiseSocket's static key once the app starts**
 
-2. Handshake
+## 2. Handshake
 ------------
 
 The signature for NoiseSocket public key is transmitted together with the email you used for you Virgil Card inside the 
@@ -42,7 +42,7 @@ NoiseSocket handshake as a json object:
 }
 ```
 
-3. Authentication
+## 3. Authentication
 -------------
 The other peer takes NoiseSocket public key, extracts signature and identity and requests your card from Virgil Card Service.
 
