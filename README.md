@@ -34,3 +34,7 @@ Values are as follows:
 
 	NOISE_PATTERN_XX = 9
 	NOISE_PATTERN_IK = 14
+	
+# PKI Integration
+
+See (virgil)[/virgil]
