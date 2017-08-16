@@ -74,10 +74,12 @@ func (h *halfConn) decryptIfNeeded(b *buffer) (off, length int, err error) {
 		}
 
 		dataLen := binary.BigEndian.Uint16(payload)
+		//fmt.Println("decrypt len", dataLen)
 
 		if dataLen > (uint16(len(payload))) {
 			return 0, 0, errors.New(fmt.Sprintf("invalid packet data: %d %d", dataLen, len(payload)))
 		}
+		b.resize(uint16Size + uint16Size + int(dataLen))
 		return uint16Size + uint16Size, int(dataLen), nil
 	}
 

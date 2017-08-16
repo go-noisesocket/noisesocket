@@ -17,8 +17,6 @@ import (
 
 	"bytes"
 
-	"fmt"
-
 	"github.com/flynn/noise"
 	"github.com/pkg/errors"
 )
@@ -199,6 +197,7 @@ func (c *Conn) writePacketLocked(data []byte) (int, error) {
 			packet.resize(uint16Size + uint16Size + m)
 			copy(packet.data[uint16Size+uint16Size:], data[:m])
 			binary.BigEndian.PutUint16(packet.data[uint16Size:], uint16(m))
+			//fmt.Println("encrypt size", uint16(m))
 
 		} else {
 			packet.resize(len(packet.data) + len(data))
@@ -231,6 +230,7 @@ func (c *Conn) maxPayloadSizeForWrite(block *buffer) uint16 {
 // Read can be made to time out and return a Error with Timeout() == true
 // after a fixed time limit; see SetDeadline and SetReadDeadline.
 func (c *Conn) Read(b []byte) (n int, err error) {
+
 	if err = c.Handshake(); err != nil {
 		return
 	}
@@ -636,8 +636,5 @@ func (c *Conn) processCallback(publicKey []byte, payload []byte) error {
 	}
 
 	err := c.config.VerifyCallback(publicKey, payload)
-	if err != nil {
-		fmt.Println(err)
-	}
 	return err
 }

@@ -21,11 +21,11 @@ import (
 func main() {
 
 	t := time.Now()
-	n := 10
-	buf := make([]byte, 228)
+	n := 2048
+	buf := make([]byte, 10)
 	rand.Read(buf)
 
-	threads := 1
+	threads := 10
 
 	c := make(chan bool, threads)
 
@@ -47,7 +47,6 @@ func main() {
 
 		DialTLS: func(network, addr string) (net.Conn, error) {
 			conn, err := noisesocket.Dial(addr, &noisesocket.ConnectionConfig{StaticKey: clientKeys})
-			fmt.Println("Dial")
 			if err != nil {
 				fmt.Println("Dial", err)
 			}
