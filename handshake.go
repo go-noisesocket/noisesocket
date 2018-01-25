@@ -57,7 +57,7 @@ func ComposeInitiatorHandshakeMessage(s noise.DHKey, rs []byte, payload []byte, 
 	binary.BigEndian.PutUint16(prologue, uint16(len(negData)))
 	prologue = append(prologue, negData...)
 	prologue = append(initString, prologue...)
-	state = noise.NewHandshakeState(noise.Config{
+	state, err = noise.NewHandshakeState(noise.Config{
 		StaticKeypair: s,
 		Initiator:     true,
 		Pattern:       pattern,
@@ -67,7 +67,11 @@ func ComposeInitiatorHandshakeMessage(s noise.DHKey, rs []byte, payload []byte, 
 		Random:        random,
 	})
 
-	msg, _, _ = state.WriteMessage(msg, payload)
+	if err != nil{
+		return
+	}
+
+	msg, _, _, err = state.WriteMessage(msg, payload)
 
 	return
 }
@@ -112,7 +116,7 @@ func ParseNegotiationData(data []byte, s noise.DHKey) (state *noise.HandshakeSta
 	binary.BigEndian.PutUint16(prologue, uint16(len(data)))
 	prologue = append(prologue, data...)
 	prologue = append(initString, prologue...)
-	state = noise.NewHandshakeState(noise.Config{
+	state, err = noise.NewHandshakeState(noise.Config{
 		StaticKeypair: s,
 		Pattern:       pattern,
 		CipherSuite:   noise.NewCipherSuite(noise.DH25519, cipher, hash),

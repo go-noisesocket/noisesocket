@@ -504,7 +504,12 @@ func (c *Conn) RunClientHandshake() error {
 	if csIn == nil && csOut == nil {
 		b := c.out.newBlock()
 
-		b.data, csIn, csOut = state.WriteMessage(b.data, c.config.Payload)
+		if b.data, csIn, csOut, err = state.WriteMessage(b.data, c.config.Payload); err != nil{
+			c.out.freeBlock(b)
+			return err
+		}
+
+
 
 		if _, err = c.writePacket(nil); err != nil {
 			c.out.freeBlock(b)
@@ -559,7 +564,10 @@ func (c *Conn) RunServerHandshake() error {
 
 	b := c.out.newBlock()
 
-	b.data, csOut, csIn = hs.WriteMessage(b.data, c.config.Payload)
+	if b.data, csOut, csIn, err = hs.WriteMessage(b.data, c.config.Payload); err != nil{
+		c.out.freeBlock(b)
+		return err
+	}
 	//empty negotiation data
 	_, err = c.writePacket(nil)
 	if err != nil {
