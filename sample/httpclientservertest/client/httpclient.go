@@ -42,8 +42,8 @@ func main() {
 	stats := make(map[int]int)
 
 	transport := &http.Transport{
-		//MaxIdleConnsPerHost: 1,
-		//DisableKeepAlives:   false,
+		MaxIdleConnsPerHost: 1,
+		DisableKeepAlives:   true,
 
 		DialTLS: func(network, addr string) (net.Conn, error) {
 			conn, err := noisesocket.Dial(addr, &noisesocket.ConnectionConfig{StaticKey: clientKeys})

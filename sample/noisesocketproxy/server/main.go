@@ -22,8 +22,10 @@ func main() {
 
 	go startTlsServer(os.Args[2])
 
-	keys := noise.DH25519.GenerateKeypair(rand.Reader)
-
+	keys, err := noise.DH25519.GenerateKeypair(rand.Reader)
+	if err != nil {
+		log.Fatal(err)
+	}
 	l, err := noisesocket.Listen(os.Args[1], &noisesocket.ConnectionConfig{StaticKey: keys})
 	if err != nil {
 		log.Fatal(err)

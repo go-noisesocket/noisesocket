@@ -44,7 +44,10 @@ func startTLSProxy(noiseAddress, listen string) {
 		WriteTimeout: 1 * time.Minute,
 	}
 
-	clientKeys := noise.DH25519.GenerateKeypair(rand.Reader)
+	clientKeys,err := noise.DH25519.GenerateKeypair(rand.Reader)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	server.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := ioutil.ReadAll(r.Body)
@@ -97,7 +100,10 @@ func startProxy(noiseAddress, listen string) {
 		WriteTimeout: 1 * time.Minute,
 	}
 
-	clientKeys := noise.DH25519.GenerateKeypair(rand.Reader)
+	clientKeys, err := noise.DH25519.GenerateKeypair(rand.Reader)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	server.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		body, err := ioutil.ReadAll(r.Body)

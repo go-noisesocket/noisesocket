@@ -49,7 +49,10 @@ func startProxy(backendUrlString, listen string) {
 	}
 
 	transport.DialTLS = func(network, addr string) (net.Conn, error) {
-		clientKeys := noise.DH25519.GenerateKeypair(rand.Reader)
+		clientKeys, err := noise.DH25519.GenerateKeypair(rand.Reader)
+		if err != nil {
+			log.Fatal(err)
+		}
 		conn, err := noisesocket.Dial(addr, &noisesocket.ConnectionConfig{StaticKey: clientKeys, PeerStatic: serverPub})
 		transport.conn = conn
 		return conn, err

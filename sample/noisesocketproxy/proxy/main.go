@@ -27,7 +27,7 @@ func main() {
 	localAddr := os.Args[1]
 	remoteAddr := os.Args[2]
 
-	serverKeys := noise.DH25519.GenerateKeypair(c.Reader)
+	serverKeys, err := noise.DH25519.GenerateKeypair(c.Reader)
 
 	listener, err := noisesocket.Listen(localAddr, &noisesocket.ConnectionConfig{StaticKey: serverKeys})
 	if listener == nil {

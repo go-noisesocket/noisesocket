@@ -21,6 +21,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/acme/autocert"
 	"gopkg.in/noisesocket.v0"
+	"log"
 )
 
 func main() {
@@ -60,7 +61,10 @@ func startNoiseSocketServer(port, strategy int) {
 
 	server.Handler = router
 
-	serverKeys := noise.DH25519.GenerateKeypair(rand.Reader)
+	serverKeys,err := noise.DH25519.GenerateKeypair(rand.Reader)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	l, err := noisesocket.Listen(fmt.Sprintf(":%d", port), &noisesocket.ConnectionConfig{StaticKey: serverKeys})
 	if err != nil {

@@ -65,7 +65,10 @@ func main() {
 
 func StartClient(identity string, key *virgilapi.Key) (*http.Client, error) {
 
-	keys := noise.DH25519.GenerateKeypair(rand.Reader)
+	keys, err := noise.DH25519.GenerateKeypair(rand.Reader)
+	if err != nil {
+		return nil, err
+	}
 
 	signature, err := key.Sign(keys.Public)
 	if err != nil {

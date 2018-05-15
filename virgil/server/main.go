@@ -37,8 +37,10 @@ func main() {
 }
 func startServer(identity string, key *virgilapi.Key) {
 
-	keys := noise.DH25519.GenerateKeypair(rand.Reader)
-
+	keys, err := noise.DH25519.GenerateKeypair(rand.Reader)
+	if err != nil {
+		panic(err)
+	}
 	signature, err := key.Sign(keys.Public)
 	if err != nil {
 		panic(err)
