@@ -498,7 +498,11 @@ func (c *Conn) RunClientHandshake() error {
 		return err
 	}
 
-	c.processCallback(state.PeerStatic(), payload)
+	err = c.processCallback(state.PeerStatic(), payload)
+	if err != nil {
+		c.in.freeBlock(inBlock)
+		return err
+	}
 	c.in.freeBlock(inBlock)
 
 	if csIn == nil && csOut == nil {
