@@ -4,9 +4,9 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/flynn/noise"
-	"github.com/spiffe/go-spiffe/uri"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/noisesocket.v0"
 	h "gopkg.in/noisesocket.v0/spiffe/helpers"
@@ -45,6 +45,12 @@ func init() {
 
 func main() {
 	kingpin.Parse()
+
+	fmt.Printf("Number of allowed SPIFFE URI IDs: %d\n", len(*allowedURIs))
+	for _, u := range *allowedURIs {
+		fmt.Printf("\t%s\n",u)
+	}
+
 	err := startServer()
 	if err != nil {
 		panic("failed to start server: " + err.Error())
@@ -127,11 +133,14 @@ func verifyCallback(publicKey []byte, data []byte) error {
 		return fmt.Errorf("unable to verify noise client public key: %s", err)
 	}
 
-	id, err := uri.GetURINamesFromCertificate(cert)
-	if err == nil {
-		log.Printf("Access from %s permitted", id[0])
+	if len(cert.URIs) != 1 {
+		return errors.New("failed to get SPIFFE ID")
 	}
-
+	err = h.VerifyURI(cert.URIs, *allowedURIs)
+	if err != nil {
+		return fmt.Errorf("access is not perrmitted: %s", err)
+	}
+	log.Printf("Access for %s entity has been permitted", cert.URIs[0])
 	return nil
 }
 
