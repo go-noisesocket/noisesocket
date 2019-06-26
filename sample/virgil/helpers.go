@@ -57,8 +57,8 @@ func GetIdentityAndSignature(data []byte) (identity string, signature []byte, er
 		return
 	}
 
-	identity = info.Identity
-	signature = info.Signature
+	identity = Identity
+	signature = Signature
 	return
 }
 

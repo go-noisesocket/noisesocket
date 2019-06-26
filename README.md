@@ -37,4 +37,4 @@ Values are as follows:
 	
 # PKI Integration
 
-See [virgil](/virgil)
+See [virgil](/sample/virgil)

@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"github.com/flynn/noise"
 	"gopkg.in/noisesocket.v0"
-	h "gopkg.in/noisesocket.v0/spiffe/helpers"
+	"gopkg.in/noisesocket.v0/sample/spiffe/helpers"
 	"io"
 	"io/ioutil"
 	"log"
@@ -22,11 +22,11 @@ var (
 
 func init() {
 	var err error
-	serverCA, err = h.GetCertPool("./keys/test1-IntermediateCA.pem")
+	serverCA, err = helpers.GetCertPool("./keys/test1-IntermediateCA.pem")
 	if err != nil {
 		log.Fatal(err)
 	}
-	serverRoot, err = h.GetCertPool("./keys/test1-RootCA.pem")
+	serverRoot, err = helpers.GetCertPool("./keys/test1-RootCA.pem")
 	if err != nil {
 		panic(err)
 	}
@@ -74,12 +74,12 @@ func StartClient() (*http.Client, error) {
 		Private: priv1,
 	}
 
-	signature, err := h.Sign(pub1, "./keys/client-key.pem")
+	signature, err := helpers.Sign(pub1, "./keys/client-key.pem")
 
 	if err != nil {
 		return nil, err
 	}
-	info := &h.AuthInfo{Certificate: clientCertPEM, Signature: signature}
+	info := &helpers.AuthInfo{Certificate: clientCertPEM, Signature: signature}
 
 	payload, err := json.Marshal(info)
 	if err != nil {
@@ -120,7 +120,7 @@ func VerifyCallback(publicKey []byte, data []byte) error {
 		},
 	}
 
-	cert, signature, err := h.GetCertificateAndSignature(data)
+	cert, signature, err := helpers.GetCertificateAndSignature(data)
 	if err != nil {
 		return fmt.Errorf("unable to get server certificate: %s", err)
 	}
@@ -130,7 +130,7 @@ func VerifyCallback(publicKey []byte, data []byte) error {
 		return fmt.Errorf("unable to verify server certificate: %s", err)
 	}
 
-	err = h.ValidateSignature(publicKey, cert, signature)
+	err = helpers.ValidateSignature(publicKey, cert, signature)
 	if err != nil {
 		return fmt.Errorf("unable to verify noise server public key: %s", err)
 	}

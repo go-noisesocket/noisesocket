@@ -9,7 +9,7 @@ import (
 	"github.com/flynn/noise"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"gopkg.in/noisesocket.v0"
-	h "gopkg.in/noisesocket.v0/spiffe/helpers"
+	"gopkg.in/noisesocket.v0/sample/spiffe/helpers"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -29,11 +29,11 @@ var (
 func init() {
 	var err error
 
-	clientCA, err = h.GetCertPool("./keys/test3-IntermediateCA.pem")
+	clientCA, err = helpers.GetCertPool("./keys/test3-IntermediateCA.pem")
 	if err != nil {
 		panic(err)
 	}
-	clientRoot, err = h.GetCertPool("./keys/test3-RootCA.pem")
+	clientRoot, err = helpers.GetCertPool("./keys/test3-RootCA.pem")
 	if err != nil {
 		panic(err)
 	}
@@ -68,12 +68,12 @@ func startServer() error {
 		Private: priv,
 	}
 
-	signature, err := h.Sign(pub, "./keys/server-key.pem")
+	signature, err := helpers.Sign(pub, "./keys/server-key.pem")
 	if err != nil {
 		return err
 	}
 
-	info := &h.AuthInfo{Certificate: serverCertPEM, Signature: signature}
+	info := &helpers.AuthInfo{Certificate: serverCertPEM, Signature: signature}
 	payload, err := json.Marshal(info)
 	if err != nil {
 		return err
@@ -113,7 +113,7 @@ func verifyCallback(publicKey []byte, data []byte) error {
 		},
 	}
 
-	cert, signature, err := h.GetCertificateAndSignature(data)
+	cert, signature, err := helpers.GetCertificateAndSignature(data)
 	if err != nil {
 		return fmt.Errorf("unable to get client certificate: %s", err)
 	}
@@ -123,12 +123,12 @@ func verifyCallback(publicKey []byte, data []byte) error {
 		return fmt.Errorf("unable to veirfy client certificate: %s", err)
 	}
 
-	err = h.ValidateURI(cert, *allowedURIs)
+	err = helpers.ValidateURI(cert, *allowedURIs)
 	if err != nil {
 		return fmt.Errorf("client URI is not allowed: %s", err)
 	}
 
-	err = h.ValidateSignature(publicKey, cert, signature)
+	err = helpers.ValidateSignature(publicKey, cert, signature)
 	if err != nil {
 		return fmt.Errorf("unable to verify noise client public key: %s", err)
 	}
@@ -136,7 +136,7 @@ func verifyCallback(publicKey []byte, data []byte) error {
 	if len(cert.URIs) != 1 {
 		return errors.New("failed to get SPIFFE ID")
 	}
-	err = h.VerifyURI(cert.URIs, *allowedURIs)
+	err = helpers.VerifyURI(cert.URIs, *allowedURIs)
 	if err != nil {
 		return fmt.Errorf("access is not perrmitted: %s", err)
 	}

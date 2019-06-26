@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	virgil2 "gopkg.in/noisesocket.v0/sample/virgil"
 	"net/http"
 	"os"
 	"time"
@@ -12,8 +13,7 @@ import (
 	"encoding/json"
 
 	"github.com/flynn/noise"
-	noisesocket "gopkg.in/noisesocket.v0"
-	v "gopkg.in/noisesocket.v0/virgil"
+	"gopkg.in/noisesocket.v0"
 	"gopkg.in/virgil.v4/virgilapi"
 )
 
@@ -27,7 +27,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	key, err := v.InitVirgilCard(mail)
+	key, err := virgil2.InitVirgilCard(mail)
 
 	if err != nil {
 		panic(err)
@@ -46,7 +46,7 @@ func startServer(identity string, key *virgilapi.Key) {
 		panic(err)
 	}
 
-	info := &v.AuthInfo{Identity: identity, Signature: signature}
+	info := &virgil2.AuthInfo{Identity: identity, Signature: signature}
 
 	payload, err := json.Marshal(info)
 
@@ -81,7 +81,7 @@ func verifyCallback(publicKey []byte, data []byte) error {
 	if len(publicKey) == 0 {
 		return nil
 	}
-	identity, signature, err := v.GetIdentityAndSignature(data)
+	identity, signature, err := virgil2.GetIdentityAndSignature(data)
 
 	if err != nil {
 		return err
@@ -91,7 +91,7 @@ func verifyCallback(publicKey []byte, data []byte) error {
 		return errors.New("invalid identity")
 	}
 
-	return v.ValidateSignature(publicKey, signature, identity)
+	return virgil2.ValidateSignature(publicKey, signature, identity)
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
