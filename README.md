@@ -1,4 +1,4 @@
-# Noise Socket Go - a [Noise Socket](https://github.com/noisesocket/spec) implementation in Go
+# Noise Socket Go - a [Noise Socket](https://noisesocket.org) implementation in Go
 
 go get -u gopkg.in/noisesocket.v0
 
@@ -35,6 +35,3 @@ Values are as follows:
 	NOISE_PATTERN_XX = 9
 	NOISE_PATTERN_IK = 14
 	
-# PKI Integration
-
-See [virgil](/sample/virgil)
