@@ -1,5 +1,12 @@
 # Noise Socket Go - a [Noise Socket](https://noisesocket.org) implementation in Go
 
+Created by
+
+![Created by VirgilSecurity, inc.](https://cdn.virgilsecurity.com/assets/images/github/logos/virgil-logo-red.png)
+
+Installation: 
+-------------------------
+
 go get -u gopkg.in/noisesocket.v0
 
 See [sample](sample) folder for an example of HTTPS client and server implementations
