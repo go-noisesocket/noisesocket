@@ -7,7 +7,7 @@ Created by
 Installation: 
 -------------------------
 
-go get -u gopkg.in/noisesocket.v0
+go get -u github.com/go-noisesocket/noisesocket
 
 See [sample](sample) folder for an example of HTTPS client and server implementations
 
