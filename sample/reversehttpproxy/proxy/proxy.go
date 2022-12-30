@@ -15,9 +15,9 @@ import (
 	"encoding/base64"
 
 	"github.com/flynn/noise"
+	"github.com/go-noisesocket/noisesocket"
 	"github.com/namsral/flag"
 	"github.com/oxtoacart/bpool"
-	"gopkg.in/noisesocket.v0"
 )
 
 var (
@@ -44,7 +44,7 @@ func startProxy(backendUrlString, listen string) {
 
 	transport := &proxyTransport{
 		Transport: http.Transport{
-		//DisableKeepAlives: true,
+			// DisableKeepAlives: true,
 		},
 	}
 
@@ -70,7 +70,7 @@ type proxyTransport struct {
 	conn *noisesocket.Conn
 }
 
-//add headers with info from proxy
+// add headers with info from proxy
 
 func (p *proxyTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	resp, err := p.Transport.RoundTrip(req)

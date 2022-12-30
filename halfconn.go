@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-//halfConn represents inbound or outbound connection state with its own cipher
+// halfConn represents inbound or outbound connection state with its own cipher
 type halfConn struct {
 	sync.Mutex
 	cs      *noise.CipherState
@@ -35,7 +35,7 @@ func (h *halfConn) encryptIfNeeded(block *buffer) []byte {
 			panic("data is too big to be sent")
 		}
 
-		block.data = h.cs.Encrypt(block.data[:uint16Size], nil, block.data[uint16Size:])
+		block.data, _ = h.cs.Encrypt(block.data[:uint16Size], nil, block.data[uint16Size:])
 		binary.BigEndian.PutUint16(block.data, uint16(payloadSize))
 
 		return block.data
@@ -60,7 +60,7 @@ func (h *halfConn) decryptIfNeeded(b *buffer) (off, length int, err error) {
 	payload := b.data[uint16Size:]
 
 	packetLen := binary.BigEndian.Uint16(b.data)
-	if int(packetLen) != len(payload) { //this is supposed to be checked before method call
+	if int(packetLen) != len(payload) { // this is supposed to be checked before method call
 		panic("invalid payload size")
 	}
 
@@ -74,7 +74,7 @@ func (h *halfConn) decryptIfNeeded(b *buffer) (off, length int, err error) {
 		}
 
 		dataLen := binary.BigEndian.Uint16(payload)
-		//fmt.Println("decrypt len", dataLen)
+		// fmt.Println("decrypt len", dataLen)
 
 		if dataLen > (uint16(len(payload))) {
 			return 0, 0, errors.New(fmt.Sprintf("invalid packet data: %d %d", dataLen, len(payload)))

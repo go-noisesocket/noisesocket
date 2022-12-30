@@ -18,7 +18,7 @@ import (
 	"crypto/tls"
 
 	"github.com/flynn/noise"
-	"gopkg.in/noisesocket.v0"
+	"github.com/go-noisesocket/noisesocket"
 )
 
 var (
@@ -44,7 +44,7 @@ func startTLSProxy(noiseAddress, listen string) {
 		WriteTimeout: 1 * time.Minute,
 	}
 
-	clientKeys,err := noise.DH25519.GenerateKeypair(rand.Reader)
+	clientKeys, err := noise.DH25519.GenerateKeypair(rand.Reader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func TLSRoundTrip(noiseAddress string, clientKeys noise.DHKey, body []byte) ([]b
 
 	transport := &http.Transport{
 		DialTLS: func(network, addr string) (net.Conn, error) {
-			return tls.Dial("tcp", addr, &tls.Config{InsecureSkipVerify: true}) //noisesocket.Dial(addr, clientKeys, nil)
+			return tls.Dial("tcp", addr, &tls.Config{InsecureSkipVerify: true}) // noisesocket.Dial(addr, clientKeys, nil)
 		},
 	}
 
@@ -130,7 +130,7 @@ func noiseRoundTrip(noiseAddress string, clientKeys noise.DHKey, body []byte) ([
 
 	transport := &http.Transport{
 		DialTLS: func(network, addr string) (net.Conn, error) {
-			//fmt.Println("dial!")
+			// fmt.Println("dial!")
 			return noisesocket.Dial(addr, &noisesocket.ConnectionConfig{StaticKey: clientKeys})
 		},
 	}

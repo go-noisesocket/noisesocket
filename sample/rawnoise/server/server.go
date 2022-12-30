@@ -8,7 +8,7 @@ import (
 	"net"
 
 	"github.com/flynn/noise"
-	"gopkg.in/noisesocket.v0"
+	"github.com/go-noisesocket/noisesocket"
 )
 
 func main() {

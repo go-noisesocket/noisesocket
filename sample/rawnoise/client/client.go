@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/flynn/noise"
-	"gopkg.in/noisesocket.v0"
+	"github.com/go-noisesocket/noisesocket"
 )
 
 func main() {
@@ -15,7 +15,7 @@ func main() {
 	pub1, _ := base64.StdEncoding.DecodeString("L9Xm5qy17ZZ6rBMd1Dsn5iZOyS7vUVhYK+zby1nJPEE=")
 	priv1, _ := base64.StdEncoding.DecodeString("TPmwb3vTEgrA3oq6PoGEzH5hT91IDXGC9qEMc8ksRiw=")
 
-	//serverPub, _ := base64.StdEncoding.DecodeString("J6TRfRXR5skWt6w5cFyaBxX8LPeIVxboZTLXTMhk4HM=")
+	// serverPub, _ := base64.StdEncoding.DecodeString("J6TRfRXR5skWt6w5cFyaBxX8LPeIVxboZTLXTMhk4HM=")
 
 	clientKeys := noise.DHKey{
 		Public:  pub1,

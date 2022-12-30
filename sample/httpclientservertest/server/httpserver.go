@@ -19,7 +19,7 @@ import (
 	"io/ioutil"
 
 	"github.com/flynn/noise"
-	"gopkg.in/noisesocket.v0"
+	"github.com/go-noisesocket/noisesocket"
 )
 
 var (
@@ -28,7 +28,7 @@ var (
 
 func main() {
 
-	//go startHttpServer()
+	// go startHttpServer()
 	startNoiseSocketServer()
 
 }
@@ -39,9 +39,9 @@ func startNoiseSocketServer() {
 		ReadTimeout:  1 * time.Minute,
 		WriteTimeout: 1 * time.Minute,
 	}
-	//server.SetKeepAlivesEnabled(true)
+	// server.SetKeepAlivesEnabled(true)
 
-	buf := make([]byte, 1) //send 4113 bytes
+	buf := make([]byte, 1) // send 4113 bytes
 	rand.Read(buf)
 	server.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		io.Copy(ioutil.Discard, r.Body)

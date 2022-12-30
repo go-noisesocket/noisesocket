@@ -17,18 +17,19 @@ import (
 
 	"crypto/tls"
 
+	"log"
+
 	"github.com/flynn/noise"
+	"github.com/go-noisesocket/noisesocket"
 	"github.com/julienschmidt/httprouter"
 	"golang.org/x/crypto/acme/autocert"
-	"gopkg.in/noisesocket.v0"
-	"log"
 )
 
 func main() {
 
 	go startNoiseSocketServer(13242, -1)
-	//go startNoiseSocketServer(13243, -2)
-	//go startNoiseSocketServer(13244, 0)
+	// go startNoiseSocketServer(13243, -2)
+	// go startNoiseSocketServer(13244, 0)
 
 	startHttpServer()
 }
@@ -61,7 +62,7 @@ func startNoiseSocketServer(port, strategy int) {
 
 	server.Handler = router
 
-	serverKeys,err := noise.DH25519.GenerateKeypair(rand.Reader)
+	serverKeys, err := noise.DH25519.GenerateKeypair(rand.Reader)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -80,7 +81,7 @@ func startNoiseSocketServer(port, strategy int) {
 
 func Status(w http.ResponseWriter, _ *http.Request, _ httprouter.Params) {
 
-	//get underlying connection via reflection
+	// get underlying connection via reflection
 	val := reflect.ValueOf(w)
 	val = reflect.Indirect(val)
 
@@ -105,8 +106,8 @@ func startHttpServer() {
 
 	certManager := autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
-		HostPolicy: autocert.HostWhitelist("noise.virgilsecurity.com"), //your domain here
-		Cache:      autocert.DirCache("certs"),                         //folder for storing certificates
+		HostPolicy: autocert.HostWhitelist("noise.virgilsecurity.com"), // your domain here
+		Cache:      autocert.DirCache("certs"),                         // folder for storing certificates
 	}
 
 	server := &http.Server{
